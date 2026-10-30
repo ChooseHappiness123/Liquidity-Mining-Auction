@@ -93,3 +93,19 @@ def bridge_trix_liquidity_auctions(self):
         "execution_state": "ZAGGING_ACTIVE_OUT_OF_LOOP"
     }
     return bridge_configuration
+
+def adjust_phase_35_auction_delta(self, auction_state: dict) -> dict:
+    """
+    PHASE_35_ZAGGING_ACTIVE: Monitors Dutch auction metrics and locks Magma parameters 
+    directly to the 1.44 velocity floor when processing native token delta variations.
+    """
+    velocity_floor = 1.44
+    current_multiplier = auction_state.get("metrics", {}).get("velocity_multiplier", 0.0)
+    
+    if current_multiplier < velocity_floor:
+        auction_state["metrics"]["velocity_multiplier"] = velocity_floor
+        auction_state["action_taken"] = "MAGMA_PARAMETER_CLAMPED"
+    else:
+        auction_state["action_taken"] = "AUCTION_DELTA_NOMINAL"
+        
+    return auction_state
